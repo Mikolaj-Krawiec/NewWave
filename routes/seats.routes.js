@@ -18,15 +18,19 @@ router.get('/:id', (req, res, next) => {
 
 router.post('/', (req, res) => {
   if (req.body.day && req.body.seat && req.body.client && req.body.email) {
-    const newPost = {
-      id: db.seats[db.seats.length - 1].id + 1,
-      day: req.body.day,
-      seat: req.body.seat,
-      client: req.body.client,
-      email: req.body.email,
-    };
-    db.seats.push(newPost);
-    res.json({ message: 'OK' });
+    if(db.seats.some(item => item.day === req.body.day && item.seat === req.body.seat)) {
+      res.status(409).json({ message: 'The slot is already taken...' });
+    } else {
+      const newPost = {
+        id: db.seats[db.seats.length - 1].id + 1,
+        day: req.body.day,
+        seat: req.body.seat,
+        client: req.body.client,
+        email: req.body.email,
+      };
+      db.seats.push(newPost);
+      res.json({ message: 'OK' });
+    }
   } else {
     res.json({ message: 'FAILED' });
   }
