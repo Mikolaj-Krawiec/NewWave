@@ -1,18 +1,17 @@
 import React from 'react';
 import { Button, Progress, Alert } from 'reactstrap';
+import io from 'socket.io-client';
 
 import './SeatChooser.scss';
 
 class SeatChooser extends React.Component {
-  
   componentDidMount() {
-    const { loadSeats } = this.props;
+    const { loadSeats, loadSeatsData } = this.props;
     loadSeats();
-    this.loadSeatsTimer = setInterval(loadSeats, 120000);
-  }
-
-  componentWillUnmount() {
-    clearInterval(this.loadSeatsTimer);
+    this.socket = io(process.env.NODE_ENV === 'production' ? null :'localhost:8000');
+    this.socket.on('seatsUpdated', (seats) => {
+      loadSeatsData(seats);
+    });
   }
 
   isTaken = (seatId) => {
@@ -26,23 +25,29 @@ class SeatChooser extends React.Component {
     const { isTaken } = this;
 
     if(seatId === chosenSeat) return <Button key={seatId} className="seats__seat" color="primary">{seatId}</Button>;
-    else if(isTaken(seatId)) return <Button key={seatId} className="seats__seat" disabled color="secondary">{seatId}</Button>;
+    else if(isTaken(seatId)) {
+      this.takenSeats += 1;
+      return (<Button key={seatId} className="seats__seat" disabled color="secondary">{seatId}</Button>)
+    } 
     else return <Button key={seatId} color="primary" className="seats__seat" outline onClick={(e) => updateSeat(e, seatId)}>{seatId}</Button>;
   }
 
   render() {
-
+    this.takenSeats= 0; 
     const { prepareSeat } = this;
     const { requests } = this.props;
+
+    const seats = ([...Array(50)].map((x, i) => prepareSeat(i+1) ));
 
     return (
       <div>
         <h3>Pick a seat</h3>
         <small id="pickHelp" className="form-text text-muted ml-2"><Button color="secondary" /> – seat is already taken</small>
         <small id="pickHelpTwo" className="form-text text-muted ml-2 mb-4"><Button outline color="primary" /> – it's empty</small>
-        { (requests['LOAD_SEATS'] && requests['LOAD_SEATS'].success) && <div className="seats">{[...Array(50)].map((x, i) => prepareSeat(i+1) )}</div>}
+        { (requests['LOAD_SEATS'] && requests['LOAD_SEATS'].success) && <div className="seats">{seats}</div>}
         { (requests['LOAD_SEATS'] && requests['LOAD_SEATS'].pending) && <Progress animated color="primary" value={50} /> }
         { (requests['LOAD_SEATS'] && requests['LOAD_SEATS'].error) && <Alert color="warning">Couldn't load seats...</Alert> }
+        <div>Free seats: { 50 - this.takenSeats}/50</div>
       </div>
     )
   };

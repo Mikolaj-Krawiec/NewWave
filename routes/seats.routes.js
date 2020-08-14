@@ -29,6 +29,7 @@ router.post('/', (req, res) => {
         email: req.body.email,
       };
       db.seats.push(newPost);
+      req.io.emit('seatsUpdated', db.seats);
       res.json({ message: 'OK' });
     }
   } else {
