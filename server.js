@@ -30,7 +30,9 @@ app.get('*', (req, res) => {
   res.sendFile(path.join(__dirname, '/client/build/index.html'));
 });
 
-mongoose.connect(`mongodb+srv://${process.env.MDBUser}:${process.env.MDBPassword}@cluster0-utnpw.mongodb.net/NewWaveDB?retryWrites=true&w=majority`, { useNewUrlParser: true,  useUnifiedTopology: true });
+const dbURI = process.env.NODE_ENV === 'production' ? `mongodb+srv://${process.env.MDBUser}:${process.env.MDBPassword}@cluster0-utnpw.mongodb.net/NewWaveDB?retryWrites=true&w=majority` : 'mongodb://localhost:27017/test_DB';
+
+mongoose.connect(dbURI, { useNewUrlParser: true, useUnifiedTopology: true });
 const db = mongoose.connection;
 
 db.once('open', () => {
@@ -46,3 +48,5 @@ const io = socket(server);
 io.on('connection', (socket) => {
   console.log('New client! Its id – ' + socket.id);
 });
+
+module.exports = server;
