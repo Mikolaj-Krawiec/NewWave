@@ -1,4 +1,5 @@
 const Concert = require('../models/concert.model');
+const sanitize = require('mongo-sanitize');
 
 exports.getAll = async (req, res) => {
   try {
@@ -31,11 +32,11 @@ exports.postOne = async (req, res) => {
       req.body.image
     ) {
       const newPost = new Concert({
-        performer: req.body.performer,
-        genre: req.body.genre,
-        price: req.body.price,
-        day: req.body.day,
-        image: req.body.image,
+        performer: sanitize(req.body.performer),
+        genre: sanitize(req.body.genre),
+        price: sanitize(req.body.price),
+        day: sanitize(req.body.day),
+        image: sanitize(req.body.image),
       });
       await newPost.save();
       res.json({ message: 'OK' });
@@ -59,19 +60,19 @@ exports.putId = async (req, res) => {
         req.body.image)
     ) {
       if (req.body.performer) {
-        con.performer = req.body.performer;
+        con.performer = sanitize(req.body.performer);
       }
       if (req.body.genre) {
-        con.genre = req.body.genre;
+        con.genre = sanitize(req.body.genre);
       }
       if (req.body.price) {
-        con.price = req.body.price;
+        con.price = sanitize(req.body.price);
       }
       if (req.body.day) {
-        con.day = req.body.day;
+        con.day = sanitize(req.body.day);
       }
       if (req.body.image) {
-        con.image = req.body.image;
+        con.image = sanitize(req.body.image);
       }
       await con.save();
       res.json({ message: 'OK' });
